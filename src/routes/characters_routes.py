@@ -1,6 +1,6 @@
 from typing import Union
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from src.mongo_db.conexion import iniciar_conexion
 from src.mongo_db.models.characters_models import Character
 from src.utils.generar_tiempo_real import generar_hora_y_fecha
@@ -77,14 +77,27 @@ def edit_character(id_personaje: str, data: Character):
     characters = iniciar_conexion()
     personaje_encontrado = characters.find_one({"_id": id_personaje})
     
-    personaje_encontrado = {
-        "_id": id_personaje,
+    info_para_anadir= {
+        # "_id": id_personaje,
         "nombre": data.name,
         "apellido": data.last_name,
         "año": data.age,
     }
     print(f"personaje encontrado: {personaje_encontrado}")
     
+    # Actualizar el documento en MongoDB
+    resultado = characters.update_one(
+        {"_id": id_personaje},  # Filtro para encontrar el documento por ID
+        {"$set": info_para_anadir}  # Datos a actualizar
+    )
+    
+    # if resultado.matched_count == 0:
+    #     raise HTTPException(status_code=404, detail="Personaje no encontrado")
+    
     return {"message": "id obtenido con exito",
-            "id": id_personaje,
-            "personaje_encontrado": personaje_encontrado}
+            "id_personaje": id_personaje,
+            "nombre": data.name,
+            "apellido": data.last_name,
+            "año": data.age,
+            
+            }
