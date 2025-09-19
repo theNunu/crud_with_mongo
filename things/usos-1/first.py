@@ -42,9 +42,10 @@ print("\n -- -- USANDO UN BUCLE")
 contador = 0
 for i, text in enumerate(texto_split):
     print(i +1, text)
-    if text == "fin":
+    if text.lower() == "no":
         palabras_repetidas.append(text)
         
         
 print(palabras_repetidas)
+print(f"la palabra se repitio {len(palabras_repetidas)} veces")
         
