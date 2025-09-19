@@ -4,6 +4,9 @@ from fastapi import FastAPI, HTTPException
 from src.mongo_db.conexion import iniciar_conexion
 from src.mongo_db.models.characters_models import Character
 from src.utils.generar_tiempo_real import generar_hora_y_fecha
+
+from bson import ObjectId
+
 app = FastAPI(
     title = "un crud con mongo",
     description = "un crud usando las rutas de fastapi"
@@ -23,6 +26,7 @@ def character_serializer(character) -> dict:
         "name personaje": character["nombre"],
         "last_name personaje": character["apellido"],
         "age personaje": character["año"],
+        "state": character["state"],
         "se obtuvo en": tiempo_generado
     }
 
@@ -35,8 +39,9 @@ def guardar_personaje(data: Character):
         "nombre": data.name,
         "apellido": data.last_name,
         "año": data.age,
-        "se_creo_en": tiempo_generado
-        
+        # "state": data.state,
+        "se_creo_en": tiempo_generado,
+ 
     }
     
     character.insert_one(informacion)
@@ -48,6 +53,7 @@ def guardar_personaje(data: Character):
         "nombre": data.name,
         "apellido": data.last_name,
         "año": data.age,
+        "state": data.state,
         "fecha_creacion": tiempo_generado
     }
 
@@ -75,29 +81,42 @@ def encontrar_por_nombre():
 @app.put("/editar_personaje/{id_personaje}")
 def edit_character(id_personaje: str, data: Character):
     characters = iniciar_conexion()
-    personaje_encontrado = characters.find_one({"_id": id_personaje})
+    # personaje_encontrado = characters.find_one({"_id": id_personaje})
     
-    info_para_anadir= {
-        # "_id": id_personaje,
+    # Validar que el ID sea un ObjectId válido
+    try:
+        object_id = ObjectId(id_personaje)
+    except Exception:
+        raise HTTPException(status_code=400, detail="ID de personaje inválido")
+    
+    # Preparar los datos actualizados
+    tiempo_generado = generar_hora_y_fecha()
+    informacion_actualizada = {
         "nombre": data.name,
         "apellido": data.last_name,
         "año": data.age,
+        "se_actualizo_en": tiempo_generado  # Actualiza la fecha de creación (puedes omitir esto si no deseas cambiarla)
     }
-    print(f"personaje encontrado: {personaje_encontrado}")
-    
+
     # Actualizar el documento en MongoDB
     resultado = characters.update_one(
-        {"_id": id_personaje},  # Filtro para encontrar el documento por ID
-        {"$set": info_para_anadir}  # Datos a actualizar
+        {"_id": object_id},  # Filtro para encontrar el documento por ID
+        {"$set": informacion_actualizada}  # Datos a actualizar
     )
+
+    # Verificar si se actualizó algún documento
+    if resultado.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Personaje no encontrado")
     
-    # if resultado.matched_count == 0:
-    #     raise HTTPException(status_code=404, detail="Personaje no encontrado")
+    # Devolver una respuesta con los datos actualizados
     
-    return {"message": "id obtenido con exito",
+    return {"message": "id actualizado con exito",
             "id_personaje": id_personaje,
             "nombre": data.name,
             "apellido": data.last_name,
             "año": data.age,
-            
-            }
+            }  
+    
+@app.put("/eliminar_personaje")
+def delete_charcater():
+    pass
