@@ -3,8 +3,10 @@
 
 from fastapi import Security, HTTPException, status, Request, Depends
 from fastapi.security import APIKeyHeader
-from motor.motor_asyncio import AsyncIOMotorClient
+# from motor.motor_asyncio import AsyncIOMotorClient
 from src.mongo_db.models.characters_models import ApiUserBase
+
+from src.mongo_db.conexion import iniciar_conexion
 # Encabezado para la clave API
 api_key = APIKeyHeader(name="x-api-key")
 
@@ -15,25 +17,25 @@ internal_routes = [
 
 # Dependencia para obtener el cliente de MongoDB
 async def get_mongo_client():
-    client = AsyncIOMotorClient("mongodb://localhost:27017")
+    character = iniciar_conexion()
     try:
-        yield client
+        yield character
     finally:
-        client.close()
+        character.close()
 
-# Dependencia para obtener la colección de MongoDB
-async def get_mongo_collection():
-    client = AsyncIOMotorClient("mongodb://localhost:27017")
-    db = client["crud_mongo"]
-    collection = db["character"]
-    try:
-        yield collection
-    finally:
-        client.close()
+# # Dependencia para obtener la colección de MongoDB
+# async def get_mongo_collection():
+#     client = AsyncIOMotorClient("mongodb://localhost:27017")
+#     db = client["crud_mongo"]
+#     collection = db["character"]
+#     try:
+#         yield collection
+#     finally:
+#         client.close()
         
 
 # Función de autenticación adaptada para MongoDB
-async def handle_api_key(req: Request, collection=Depends(get_mongo_collection), key: str = Security(api_key)):
+async def handle_api_key(req: Request, collection=Depends(get_mongo_client), key: str = Security(api_key)):
     # Buscar el usuario en MongoDB por la clave API y estado activo
     api_key_data = await collection.find_one({"api_key": key, "active": True})
 
