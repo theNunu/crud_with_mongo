@@ -60,12 +60,6 @@ def guardar_personaje(data: Character):
 @app.get("/obtener_todos_personajes")
 def traer_todos_personajes():
     characters = iniciar_conexion()
-    # def iniciar_bucle():
-    #     for c in character.find():
-    #         # print(c)
-    #         return c
-    # result = iniciar_bucle()
-    # print(f"resultado del bucle: {result}")
     personajes = [character_serializer(char) for char in characters.find({"state": 1})] 
     print(f"\nall characters: {personajes}")
     return personajes
@@ -128,23 +122,12 @@ def delete_charcater(id_personaje: str, data: Character):
     
         # Preparar los datos actualizados
     tiempo_generado = generar_hora_y_fecha()
-    informacion_actualizada = {
-        # "nombre": data.name,
-        # "apellido": data.last_name,
-        # "año": data.age,
-        "state": data.state,
-        "se_elimino_en": tiempo_generado  # Actualiza la fecha de creación (puedes omitir esto si no deseas cambiarla)
-    }
-
     # Actualizar el documento en MongoDB
     resultado = characters.update_one(
         {"_id": object_id},  # Filtro para encontrar el documento por ID
         {"$set": {"state": 0}}  # Datos a actualizar
     )
     
-    nuevos_valores = {
-        "$set": { "state": False}
-    }
         # Verificar si se actualizó algún documento
     if resultado.matched_count == 0:
         raise HTTPException(status_code=404, detail="Personaje no encontrado")
@@ -156,6 +139,7 @@ def delete_charcater(id_personaje: str, data: Character):
             "nombre": data.name,
             "apellido": data.last_name,
             "año": data.age,
+            "se elimino en": tiempo_generado
             }  
     
     
@@ -163,12 +147,10 @@ def delete_charcater(id_personaje: str, data: Character):
 @app.get("/obtener_personajes_eliminados")
 def traer_personajes_borrados():
     characters = iniciar_conexion()
-    # def iniciar_bucle():
-    #     for c in character.find():
-    #         # print(c)
-    #         return c
-    # result = iniciar_bucle()
-    # print(f"resultado del bucle: {result}")
     personajes = [character_serializer(char) for char in characters.find({"state": 0})] 
     print(f"\nall characters: {personajes}")
     return personajes
+
+@app.put("/actualizar_cualquiera/{un_id}")
+def actualizar_basura(id_personaje: str, data: Character, foto: str):
+    pass
