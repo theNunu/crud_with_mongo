@@ -1,15 +1,18 @@
 from typing import Union
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from src.mongo_db.conexion import iniciar_conexion
-from src.mongo_db.models.characters_models import Character
+from src.mongo_db.models.characters_models import Character, ApiUserBase
 from src.utils.generar_tiempo_real import generar_hora_y_fecha
-
+from src.routes.auth_routes import handle_api_key
 from bson import ObjectId
 
 app = FastAPI(
     title = "un crud con mongo",
-    description = "un crud usando las rutas de fastapi"
+    description = "un crud usando las rutas de fastapi",
+     dependencies=[
+        Depends(handle_api_key),
+    ]
 
 )
 
