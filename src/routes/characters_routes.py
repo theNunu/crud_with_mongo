@@ -39,7 +39,7 @@ def guardar_personaje(data: Character):
         "nombre": data.name,
         "apellido": data.last_name,
         "año": data.age,
-        # "state": data.state,
+        "state": data.state,
         "se_creo_en": tiempo_generado,
  
     }
@@ -47,7 +47,7 @@ def guardar_personaje(data: Character):
     character.insert_one(informacion)
     
     #en este return se basa los nombres para llamarlos en otras operaciones
-    # LOQ QUE ESTA DENTRO " "
+    # LO QUE ESTA DENTRO " "
     return {
         "message": "se guardo el personaje con exito!!!",
         "nombre": data.name,
@@ -66,7 +66,7 @@ def traer_todos_personajes():
     #         return c
     # result = iniciar_bucle()
     # print(f"resultado del bucle: {result}")
-    personajes = [character_serializer(char) for char in characters.find()] 
+    personajes = [character_serializer(char) for char in characters.find({"state": 1})] 
     print(f"\nall characters: {personajes}")
     return personajes
 
@@ -117,6 +117,58 @@ def edit_character(id_personaje: str, data: Character):
             "año": data.age,
             }  
     
-@app.put("/eliminar_personaje")
-def delete_charcater():
-    pass
+@app.put("/eliminar_personaje/{id_personaje}")
+def delete_charcater(id_personaje: str, data: Character):
+    characters = iniciar_conexion()
+        # Validar que el ID sea un ObjectId válido
+    try:
+        object_id = ObjectId(id_personaje)
+    except Exception:
+        raise HTTPException(status_code=400, detail="ID de personaje inválido")
+    
+        # Preparar los datos actualizados
+    tiempo_generado = generar_hora_y_fecha()
+    informacion_actualizada = {
+        # "nombre": data.name,
+        # "apellido": data.last_name,
+        # "año": data.age,
+        "state": data.state,
+        "se_elimino_en": tiempo_generado  # Actualiza la fecha de creación (puedes omitir esto si no deseas cambiarla)
+    }
+
+    # Actualizar el documento en MongoDB
+    resultado = characters.update_one(
+        {"_id": object_id},  # Filtro para encontrar el documento por ID
+        {"$set": {"state": 0}}  # Datos a actualizar
+    )
+    
+    nuevos_valores = {
+        "$set": { "state": False}
+    }
+        # Verificar si se actualizó algún documento
+    if resultado.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Personaje no encontrado")
+    
+    # Devolver una respuesta con los datos actualizados
+    
+    return {"message": "id eliminado con exito",
+            "id_personaje": id_personaje,
+            "nombre": data.name,
+            "apellido": data.last_name,
+            "año": data.age,
+            }  
+    
+    
+    
+@app.get("/obtener_personajes_eliminados")
+def traer_personajes_borrados():
+    characters = iniciar_conexion()
+    # def iniciar_bucle():
+    #     for c in character.find():
+    #         # print(c)
+    #         return c
+    # result = iniciar_bucle()
+    # print(f"resultado del bucle: {result}")
+    personajes = [character_serializer(char) for char in characters.find({"state": 0})] 
+    print(f"\nall characters: {personajes}")
+    return personajes

@@ -5,5 +5,5 @@ class Character(BaseModel):
     name: str
     last_name: str
     age: int
-    state: bool = True
+    state: int = 1
     
