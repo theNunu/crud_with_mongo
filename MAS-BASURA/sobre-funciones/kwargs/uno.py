@@ -11,3 +11,10 @@ suma(a=3, b=10, c=3)
 #b = 10
 #c = 3
 #16
+
+def listar_campeones(**kwargs):
+    for n, c in kwargs.items():
+        print(n, c )
+    
+
+listar_campeones(name = "galio", carril = "mid", age=30) #clave , valor
