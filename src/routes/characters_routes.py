@@ -16,7 +16,7 @@ app = FastAPI(
 
 )
 
-@app.get("/")
+@app.get("/" )
 def read_root():
     return {"message": "un video mas mi gente pa perder el tiempo"}
 
